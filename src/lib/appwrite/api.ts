@@ -1,6 +1,7 @@
-import { ID } from 'appwrite';
+import { ID, Query } from 'appwrite';
 import type { INewUser } from "../../types/index";
 import { account, appwriteConfig, avatars, databases } from './config';
+import { email, string } from 'zod';
 
 
 export async function CreateUserAccount(user: INewUser) {
@@ -40,6 +41,7 @@ export async function saveUserToDB(user:{
     name: string;
     imageUrl: string;
     username ? : string;
+    
 }) {
     try {
         const newUser = await databases.createDocument(
@@ -55,4 +57,39 @@ export async function saveUserToDB(user:{
         console.log(error)
     }
     
+}
+
+export async function signInAccount(user: {
+    email: string;
+    password: string
+}) {
+    try {
+        const session = await account.createEmailPasswordSession( user.email, user.password);
+        
+        return session;
+
+    } catch (error) {
+        console.log(error)
+    }
+    
+}
+
+export async function getCurrentUser() {
+    try {
+        const currentAccount = await account.get();
+
+        if (!currentAccount) throw Error
+
+        const currentUser = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.usersCollectionId,
+            [Query.equal('accountId', currentAccount.$id)]
+        )
+
+        if (!currentUser) throw Error
+
+        return currentUser.documents[0];
+    } catch (error) {
+        console.log(error)
+    }
 }

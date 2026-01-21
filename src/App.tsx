@@ -5,6 +5,7 @@ import SigninForm from "./_auth/SigninForm.tsx";
 import SignupForm from "./_auth/SignupForm.tsx";
 import AuthLayout from "./_auth/AuthLayout.tsx";
 import RootLayout from "./_root/pages/RootLayout.tsx";
+import { Toaster } from "@/components/ui/toaster";
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
           <Route index element={<Home />} />
         </Route>
       </Routes>
+      <Toaster />
     </main>
   );
 };
