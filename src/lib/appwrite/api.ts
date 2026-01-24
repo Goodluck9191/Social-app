@@ -59,11 +59,30 @@ export async function saveUserToDB(user:{
     
 }
 
+export async function signOutAccount() {
+    try {
+        const session = await account.deleteSession('current');
+        
+        return session;
+
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 export async function signInAccount(user: {
     email: string;
     password: string
 }) {
     try {
+        // Delete any existing session first
+        try {
+            await account.deleteSession('current');
+        } catch (error) {
+            console.log(error);
+            // Session doesn't exist, which is fine
+        }
+        
         const session = await account.createEmailPasswordSession( user.email, user.password);
         
         return session;
