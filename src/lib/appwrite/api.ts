@@ -174,13 +174,10 @@ export async function uploadFile(file: File) {
 // ============================== GET FILE URL
 export function getFilePreview(fileId: string) {
   try {
-    const fileUrl = storage.getFilePreview(
+    // Use getFileView instead of getFilePreview to avoid transformation limits
+    const fileUrl = storage.getFileView(
       appwriteConfig.storageId,
-      fileId,
-      2000,
-      2000,
-      "top",
-      100
+      fileId
     );
 
     if (!fileUrl) throw Error;
@@ -192,13 +189,29 @@ export function getFilePreview(fileId: string) {
 }
 
 
-// ============================== DELETE FILE
-export async function deleteFile(fileId: string) {
-  try {
-    await storage.deleteFile(appwriteConfig.storageId, fileId);
+export async function getRecentPosts() {
+  const posts = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.postsCollectionId,
+    [Query.orderDesc('$createdAt'), Query.limit(20)]
+  )
 
-    return { status: "ok" };
-  } catch (error) {
-    console.log(error);
-  }
+  if (!posts) throw Error
+
+  // Populate creater details for each post
+  const postsWithCreator = await Promise.all(
+    posts.documents.map(async (post) => {
+      const creator = await databases.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        post.creater
+      );
+      return {
+        ...post,
+        creater: creator
+      };
+    })
+  );
+
+  return { ...posts, documents: postsWithCreator };
 }
